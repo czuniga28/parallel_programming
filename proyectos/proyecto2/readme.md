@@ -70,6 +70,16 @@ plate001.bin  1200   127  1000  1.5       3  0000/00/00  01:00:00
 plate002.bin    60  0.08   450  0.75 5690 7  0000/01/09  12:27:00
 ```
 
+### 3. MPI (Message Passing Interface)
+
+MPI es un estándar de biblioteca y modelo de programación para la comunicación entre procesos paralelos en sistemas distribuidos o de memoria compartida, se utiliza comúnmente para desarrollar aplicaciones paralelas y distribuidas, como aquellas ejecutadas en clústeres de computadoras, por lo que su ejecución debe detallar tal tecnología y la cantidad de procesos a utilizar:
+
+```sh
+mpiexec -np 4 bin/mpi tests/job001/job001.txt
+```
+
+Si la cantidad de hilos (último argumento) no se especifica, se toman por default. El programa genera una salida .txt con los resultados, al igual que la versión serial y con OMP.
+
 ## *Grafico de efiencia serial vs omp*
 
 ![Grafico](images/grafico.jpeg)
@@ -85,3 +95,8 @@ Es importante destacar que, aunque la eficiencia de la versión serial es ligera
 ## *Grafico de efiencia serial vs omp vs mpi vs omp-mpi*
 
 ![Grafico](images/grafico_omp_mpi_omp-mpi.jpeg)
+
+El gráfico representa el aumento en el speedup al emplear MPI en comparación con las demás versiones del programa de calor, 
+El *eje-x* representa las soluciones serial y concurrentes, el *eje-y primario* el incremento de velocidad y el *eje-y secundario* la eficiencia.
+
+Se observa un alto speedup en los tiempos de simulación al utilizar MPI,  que es mayor que  a la versión híbrida de MPI y OpenMP. Este demuestra la eficiencia de MPI para mejorar el rendimiento en comparación con la ejecución serial. Sin embargo, al comparar MPI con OpenMP, se obtuvo que OpenMP es la tecnología que logra el mayor speedup de todos

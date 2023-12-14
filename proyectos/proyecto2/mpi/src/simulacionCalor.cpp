@@ -63,7 +63,8 @@ int escrituraArchivoReporte(std::vector<infoSimulacion_t>& infoSimulaciones) {
     return EXIT_FAILURE;
   }
 
-  for (size_t simulacion = 0; simulacion < infoSimulaciones.size(); simulacion++) {
+  for (size_t simulacion = 0; simulacion < infoSimulaciones.size();
+  simulacion++) {
     double totalTiempo = infoSimulaciones[simulacion].estado *
       infoSimulaciones[simulacion].tiempo;
     // Se agregan los datos al archivo output
