@@ -145,6 +145,8 @@ que se vuelva a
 
 ### Candado de lectura y escritura
 
+"In computer science, a readers–writer ( also known in the cientific literature as single-writer lock, a multi-reader lock, a push lock, or an MRSW lock ) is a synchronization primitive that solves one of the readers–writers problems. An RW lock allows concurrent access for read-only operations, write operations require exclusive access. This means that multiple threads can read the data in parallel but an exclusive lock is needed for writing or modifying data. When a writer is writing the data, all other writers or readers will be blocked until the writer is finished writing. A common use might be to control access to a data structure in memory that cannot be updated atomically and is invalid (and should not be read by another thread) until the update is complete."[1]
+
 ### Descomposición
 
 Division de un problema en subproblemas mas pequeños que pueden ser resueltos de
@@ -158,8 +160,24 @@ finito y eso nos permite ajustarlo al paralelismo que dispone la maquina.
 
 ### Incremento de velocidad
 
+Se refiere a cuanto un programa gana velocidad con respecto a la version serial, se calcula como (duracion de la version serial)/(duracion de la version paralela)
+
 ### Comunicacion punto a punto entre procesos
+
+En computacion distribuida, la comunicacion punto a punto es un tipo de comunicacion entre procesos que se realiza entre dos procesos especificos. [2]
 
 ### Comunicacion colectiva entre procesos
 
+En computacion distribuida, la comunicacion colectiva es un tipo de comunicacion entre procesos que se realiza entre todos los procesos de un grupo. [3]
+
 ### Reduccion
+
+"In functional programming, fold (also termed reduce, accumulate, aggregate, compress, or inject) refers to a family of higher-order functions that analyze a recursive data structure and through use of a given combining operation, recombine the results of recursively processing its constituent parts, building up a return value. Typically, a fold is presented with a combining function, a top node of a data structure, and possibly some default values to be used under certain conditions. The fold then proceeds to combine elements of the data structure's hierarchy, using the function in a systematic way."[4]
+
+## Referencias
+
+1. Quinn, Michael J. (2007). Parallel programming in C with MPI and openMP (Tata McGraw-Hill ed.). New Delhi: Tata McGraw-Hill Pub. ISBN 978-0070582019.
+
+2. Pacheco, P., & Malensek, M. (2020). An Introduction to Parallel Programming (2nd ed.). Morgan Kaufmann.
+3. Lamport, Leslie (September 1979). "How to Make a Multiprocessor Computer That Correctly Executes Multiprocess Programs" (PDF). IEEE Transactions on Computers. C-28 (9): 690–691. doi:10.1109/tc.1979.1675439. S2CID 5679366.
+4. Raynal, M. (2012). Concurrent Programming: Algorithms, Principles, and Foundations (2013th ed.). Springer. 5.6. Kshemkalyani, A. D., & Singhal, M. (2011). Distributed Computing: Principles, Algorithms, and Systems (Illustrated). Cambridge University Press.
