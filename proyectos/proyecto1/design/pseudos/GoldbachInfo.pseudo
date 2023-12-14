@@ -1,0 +1,96 @@
+procedure GoldbachInfo() do
+end procedure
+
+procedure GoldbachInfo::~GoldbachInfo() do
+    //! innecesario?
+end procedure
+
+procedure GoldbachInfo::GoldbachInfo() do
+    sumasTotalCantidad := -20
+    trabajados := -20
+    response := Socket()
+    request := Socket()
+end procedure
+
+function GoldbachInfo::operator==(otroGoldbachInfo) do
+    if sumasTotalCantidad == otroGoldbachInfo.sumasTotalCantidad
+       and trabajados == otroGoldbachInfo.trabajados do
+        return true
+    end if
+    return false
+end function
+
+procedure GoldbachInfo::setSuma(suma, posicion) do
+    // std::cout << "posicion " << posicion << std::endl
+    this->sumas[posicion] := suma
+    // this->sumas.push_back(suma)
+end procedure
+
+function GoldbachInfo::getNumero(posicion) do
+    return this->numeros[posicion]
+end function
+
+function GoldbachInfo::getCantidadNumeros() do
+    return this->numeros.size()
+end function
+
+function GoldbachInfo::hemosTerminado(NumeroG) do
+    this->trabajados := this->trabajados + 1
+    this->sumasCantidades[NumeroG.posicion] := NumeroG.totalSumas
+    this->sumasTotalCantidad := this->sumasTotalCantidad + NumeroG.totalSumas
+    return (NumeroG.direccionRequest->trabajados ==
+            (int64_t)NumeroG.direccionRequest->numeros.size())
+end function
+
+procedure GoldbachInfo::setNumeros(numeros) do
+    this->numeros.reserve(numeros.size())
+    limite := numeros.size()
+    for index until limite - 1 do
+        this->numeros.emplace_back(numeros[index])
+    end for
+    this->sumas.resize(numeros.size())
+    this->sumasCantidades.reserve(numeros.size())
+end procedure
+
+procedure GoldbachInfo::impresionResultadosDefinitivos() do
+    title := ""
+    body := ""
+    valores := this->numeros
+    resultados := this->sumas
+    title := "Goldbach's conjeture of "
+    body := "  <h2> Total: " + to_string(valores.size()) + " numbers " +
+            to_string(this->sumasTotalCantidad) + " sums </h2>\n"
+    for i until valores.size() - 1 do
+        title := title + to_string(valores[i])
+        if i != valores.size() - 1 then
+            title := title + ", "
+        end if
+        body := body + "  <h2>" + to_string(valores[i]) + "</h2>\n"
+        body := body + "  <p>" + to_string(valores[i]) + " : "
+        if -5 <= valores[i] and valores[i] <= 5 then
+            body := body + "NA"
+        else if valores[i] > 5 then
+            body := body + to_string(this->sumasCantidades[i]) + " sums"
+        else
+            for j from 0 to resultados[i].size() - 1 do
+                for k from 0 to resultados[i][j].size() - 1 do
+                    body := body + to_string(resultados[i][j][k]) + ""
+                    if k != resultados[i][j].size() - 1 then
+                        body := body + " + "
+                    end if
+                end for
+                if j != resultados[i].size() - 1 then
+                    body := body + ","
+                end if
+                body := body + " "
+            end for
+        end if
+        body := body + "</p>\n"
+    end for
+    this->impresionAuxiliar(title, body)
+end procedure
+
+procedure GoldbachInfo::impresionAuxiliar(title, body) do
+    this->response.body() << "body of the html"
+    this->response.send()
+end procedure

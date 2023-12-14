@@ -1,0 +1,15 @@
+procedure main(argc, argv[])
+  // create thread_count as result of converting argv[1] to integer
+  if argc = 3 then
+    shared thread_count := integer(argv[1])
+    shared pinata_max_hits := integer(argv[2])
+    declare threads := create_threads(thread_count, celebrate)
+    join_threads(threads)
+  else
+    print(stderr, "usage: birthday_pinata thread_count pinata_hits")
+  end if
+end procedure
+
+procedure celebrate(thread_number)
+  print "Thread", thread_number, "/", thread_count, ": Hello"
+end procedure

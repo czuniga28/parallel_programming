@@ -1,0 +1,10 @@
+// ^(\s*)(\S) -> Exprecion regular para procesar los espacios en blanco al inicio de una linea
+// $1// $2 -> Reemplaza los espacios seleccionados 
+procedure main: // Aca corre el hilo principal (es una subrutina o procedimiento)
+  create_thread(greet) // Se crea un hilo para que ejecute la accion requerida y no lo haga el hilo principal (contrata otro trabajador)
+  print "Hello from main thread"
+end procedure
+
+procedure greet: // Hilo secundario
+  print "Hello from secondary thread"
+end procedure

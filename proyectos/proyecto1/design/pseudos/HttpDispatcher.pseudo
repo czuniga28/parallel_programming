@@ -1,0 +1,42 @@
+// Process for continuous execution
+procedure HttpDispatcher::run()
+    HttpDispatcher::consumeForever()
+    return EXIT_SUCCESS
+end procedure
+
+// Method to extract a key from the request data
+function HttpDispatcher::extractKey(data) do
+    uri := data.httpRequest.getURI()
+    key := ""
+
+    if uri == "/" then
+        key := uri
+    else if uri.contains("goldbach") then
+        if uri.length() >= 9 then
+            key := uri.substring(1, 8)
+        end if
+    else if uri.contains("fact") then
+        if uri.length() >= 5 then
+            key := uri.substring(1, 4)
+        end if
+    end if
+
+    return key
+end function
+
+// Process to consume request and response data
+procedure HttpDispatcher::consume(data) do
+    key := HttpDispatcher::extractKey(data)
+    itr := this->toQueues.find(key)
+
+    if itr exists in this->toQueues then
+        itr->second.enqueue(data)
+    end if
+end procedure
+
+// Method to stop the dispatcher
+procedure HttpDispatcher::stop() do
+    stopData := createStopData()  // Create a special request to stop
+    this->consumingQueue.enqueue(stopData)
+    this->waitToFinish()
+end procedure

@@ -1,0 +1,7 @@
+procedure main(argc, argv[])
+  // process number es el numero de proceso (int)
+  print "Hello from main thread of process ", process_number, " of " \
+    , process_count, " on ", process_hostname 
+    // process_hostname es el nombre del host del proceso
+
+end procedure

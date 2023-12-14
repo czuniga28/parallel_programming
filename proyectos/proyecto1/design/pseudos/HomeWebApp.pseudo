@@ -1,0 +1,71 @@
+// Inicio de la Clase HomeWebApp
+Class HomeWebApp do
+  // Constructor de HomeWebApp
+  function HomeWebApp() do
+  end function
+
+  // Destructor de HomeWebApp
+  function HomeWebApp() do
+  end function
+
+  function HomeWebApp::getInstance() do
+    instance := HomeWebApp()
+    return instance
+  end function
+
+  // Método para iniciar la aplicación web
+  function iniciar() do
+    // Establecer llave del webApp
+    this->key = "/";
+    // instanciar Analizador
+    this->homeConsumer := HomepageConsumer();
+    this->homeConsumer->createOwnQueue();
+    // Establecer e iniciar cola de consumo
+    this->entranceQueue := this->homeConsumer->getConsumingQueue();
+    this->homeConsumer->startThread();
+  end function
+
+  // Método para detener la aplicación web
+  function detener() do
+    this->homeConsumer->getConsumingQueue()->enqueue(reqRes_t());
+    this->homeConsumer->waitToFinish();
+  end function
+
+  // Manejar una solicitud HTTP
+  function manejarSolicitudHTTP(solicitudHTTP, respuestaHTTP) do
+      // Si se solicitó la página de inicio
+      if solicitudHTTP.método == "GET" y solicitudHTTP.uri == "/" do
+          retornar this.servirPaginaPrincipal(solicitudHTTP, respuestaHTTP)
+      end if
+      // Solicitud no reconocida
+      return falso
+  end function
+
+  // Servir la página de inicio
+  function servirPaginaPrincipal(solicitudHTTP, respuestaHTTP) do
+      (ignorar)solicitudHTTP
+
+      // Establecer metadatos de respuesta HTTP (encabezados)
+      respuestaHTTP.establecerEncabezado("Server", "AttoServer v1.1")
+      respuestaHTTP.establecerEncabezado("Content-type", "text/html; charset=ascii")
+
+      // Construir el cuerpo de la respuesta
+      título := "Goldbach & Factorization"
+      respuestaHTTP.cuerpo << "<!DOCTYPE html>\n"
+          << "<html lang=\"en\">\n"
+          << "  <meta charset=\"ascii\"/>\n"
+          << "  <title>" << título << "</title>\n"
+          << "  <style>body {font-family: monospace}</style>\n"
+          << "  <h1>" << título << "</h1>\n"
+          << "  <form method=\"get\" action=\"/fact\">\n"
+          << "    <button type=\"submit\">Prime factorization</button>\n"
+          << "  </form>\n"
+          << "  <form method=\"get\" action=\"/goldbach\">\n"
+          << "    <button type=\"submit\">Goldbach's conjeture</button>\n"
+          << "  </form>\n"
+          << "</html>\n"
+
+      // Enviar la respuesta al cliente (agente de usuario)
+      return respuestaHTTP.enviar()
+  end function
+end Class

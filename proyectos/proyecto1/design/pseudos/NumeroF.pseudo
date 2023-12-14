@@ -1,0 +1,31 @@
+// definicion estructura NumeroF
+
+struct NumeroF   {
+	declare numero
+	declare posicion
+	declare totalBases
+	declare direccionRequest as GoldbachInfo
+}
+
+procedure NumeroF():
+	numero := 0
+	posicion := -20
+	direccionRequest := null
+end procedure
+
+procedure NumeroF(numero, posicion, direccionRequest):
+	numero := numero
+	posicion := posicion
+	direccionRequest := direccionRequest
+end procedure
+
+overloading ==(otroNumeroF):
+	if this->numero == otroNumeroF.numero
+	and this->posicion == otroNumeroF.posicion
+	and this->totalBases == otroNumeroF.totalBases
+	and this->direccionRequest == otroNumeroF.direccionRequest
+	return true
+	end if
+	return false
+	
+end procedure

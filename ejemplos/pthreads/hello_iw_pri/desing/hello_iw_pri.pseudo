@@ -1,0 +1,15 @@
+procedure main(argc, argv[])
+  /* crea thread_count como resultado de convertir los parametros recibidos
+  a la hora de ejecutar el programa a ints*/ 
+  declare thread_count := integer(argv[1])
+  /* crea un for de paralelismo de datos que crea hilos que realizan la misma
+  tarea*/
+  for thread_number := 0 to thread_count do
+    create_thread(greet, thread_number, thread_count)  // thread team
+  end for
+  print "Hello from main thread"
+end procedure
+
+procedure greet(thread_number, thread_count)
+  print "Hello from secondary thread", thread_number, " of ", thread_count
+end procedure

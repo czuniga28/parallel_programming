@@ -1,0 +1,24 @@
+procedure main() {
+  shared can_run_a1 := create_semaphore(0)  // Inicia en 0 para control de a1
+  shared can_run_b1 := create_semaphore(0)  // Inicia en 0 para control de b1
+
+  create_thread(thread_a)
+  create_thread(thread_b)
+  create_thread(thread_c)
+}
+
+procedure thread_a() {
+  statement_a1
+  signal(can_run_b1)  // Avisa que a1 ha terminado y b1 puede ejecutarse
+}
+
+procedure thread_b() {
+  wait(can_run_b1)  // Espera a que se haya ejecutado a1
+  statement_b1
+  signal(can_run_c1)  // Avisa que b1 ha terminado y c1 puede ejecutarse
+}
+
+procedure thread_c() {
+  wait(can_run_c1)  // Espera a que se haya ejecutado b1
+  statement_c1
+}

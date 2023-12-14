@@ -1,0 +1,52 @@
+procedure HomepageConsumer::consume(data) do
+  // Llamar a menú de elección
+  if data.httpRequest.getMethod() == "GET" and data.httpRequest.getURI() == "/" do
+    this->serveHomepage(data.httpRequest, data.httpResponse)
+  end if
+end procedure
+
+procedure HomepageConsumer::consumeForever() do
+  while true do
+    data := this->consumingQueue->dequeue()
+    // If data is the stop condition, stop the loop
+    if data.httpRequest.getURI() == "" do
+      break
+    end if
+    // Process this data
+    this->consume(data);
+    // Producir si se cambio de WebApp
+    if data.httpRequest.getURI() != "/" do
+      this->producingQueue->enqueue(data)
+    end if
+  end while
+end procedure
+
+// Trabajara siempre que se pueda consumir
+procedure HomepageConsumer::run() do
+  this->consumeForever()
+  return EXIT_SUCCESS
+end procedure
+
+procedure HomepageConsumer::serveHomepage(httpRequest, httpResponse) do
+  httpResponse.setHeader("Server", "AttoServer v1.1");
+  httpResponse.setHeader("Content-type", "text/html; charset=ascii");
+
+  // Build the body of the response
+  title := "Goldbach & Factorization";
+  httpResponse.body() << "<!DOCTYPE html>\n"
+    << "<html lang=\"en\">\n"
+    << "  <meta charset=\"ascii\"/>\n"
+    << "  <title>" << title << "</title>\n"
+    << "  <style>body {font-family: monospace}</style>\n"
+    << "  <h1>" << title << "</h1>\n"
+    << "  <form method=\"get\" action=\"/fact\">\n"
+    << "    <button type=\"submit\">Prime factorization</button>\n"
+    << "  </form>\n"
+    << "  <form method=\"get\" action=\"/goldbach\">\n"
+    << "    <button type=\"submit\">Goldbach's conjeture</button>\n"
+    << "  </form>\n"
+    << "</html>\n";
+
+  // Send the response to the client (user agent)
+  return httpResponse.send();
+end

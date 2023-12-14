@@ -1,0 +1,26 @@
+procedure main(argc, argv[])
+  // crear variable contadora para la espera activa
+  shared next_thread := 0; 
+
+  /* crea thread_count como resultado de convertir los parametros recibidos
+  a la hora de ejecutar el programa a ints*/ 
+  // el hilo que ejecuta main se comparte
+  shared thread_count := integer(argv[1])
+  /* crea un for de paralelismo de datos que crea hilos que realizan la misma
+  tarea*/
+  for thread_number := 0 to thread_count do
+    create_thread(greet, thread_number, thread_count)  // thread team
+  end for
+  print "Hello from main thread"
+end procedure
+
+procedure greet(thread_number, thread_count)
+  // implementacion de espera activa para eliminar el indeterminismo de la tarea
+  while next_thread < thread_number do
+    // busy-wait
+  end
+
+  print "Hello from secondary thread", thread_number, " of ", thread_count
+
+  next_thread := next_thread + 1  // incrementa la variable para finalizar el BW
+end procedure

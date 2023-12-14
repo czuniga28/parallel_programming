@@ -1,0 +1,26 @@
+// Definición de un manejador de señales para Ctrl+C y Kill
+procedure manejarSeñal(signal) do
+  imprimir "Recibiendo señal desde hilo " + obtener_id_hilo_actual() + 
+    ". Señal: " + señal
+  HttpServer::getInstance().stop()  // Detener el servidor web
+end procedure
+
+// Función principal
+procedure principal(argc, argv) do
+  // Registrar manejadores de señales
+  señal(SIGINT, manejarSeñal)  // Ctrl+C
+  señal(SIGTERM, manejarSeñal)  // Kill
+
+  // Crear aplicaciones web
+  homeWebApp := HomeWebApp()
+  goldbachWebApp := GoldbachWebApp()
+  factWebApp := FactWebApp()
+
+  // Registrar aplicaciones web con el servidor
+  HttpServer::getInstance().chainWebApp(homeWebApp)
+  HttpServer::getInstance().chainWebApp(goldbachWebApp)
+  HttpServer::getInstance().chainWebApp(factWebApp)
+
+  // Ejecutar el servidor web
+  HttpServer::getInstance().run(argc, argv)
+end procedure

@@ -1,0 +1,100 @@
+procedure GoldbachAnaUri::consume(data) do
+  // Página de ingreso de datos
+  if data.httpRequest.getMethod() == "GET" and data.httpRequest.getURI() == "/goldbach?" do
+    this->serveHomepage(data.httpRequest, data.httpResponse);
+  end if
+  // Analizar información ingresada
+  if data.httpRequest.getURI().rfind("/goldbach/goldbach", 0) == true do
+    this->analizarUri(data.httpRequest, data.httpResponse);
+  end if
+end procedure
+
+// Trabajara siempre que se pueda consumir
+procedure GoldbachAnaUri::run() do
+  this->consumeForever();
+  return EXIT_SUCCESS;
+end procedure
+
+procedure GoldbachAnaUri::serveHomepage(httpRequest, httpResponse) do
+  // Set HTTP response metadata (headers)
+  httpResponse.setHeader("Server", "AttoServer v1.1");
+  httpResponse.setHeader("Content-type", "text/html; charset=ascii");
+
+  // Build the body of the response
+  title := "Goldbach's Conjeture";
+  httpResponse.body() << "<!DOCTYPE html>\n"
+    << "<html lang=\"en\">\n"
+    << "  <meta charset=\"ascii\"/>\n"
+    << "  <title>" << title << "</title>\n"
+    << "  <style>body {font-family: monospace}</style>\n"
+    << "  <h1>" << title << "</h1>\n"
+    << "  <form method=\"get\" action=\"/goldbach/goldbach\">\n"
+    << "    <label for=\"numbers\">Numbers</label>\n"
+    << "    <input type=\"text\" name=\"numbers\" required/>\n"
+    << "    <button type=\"submit\">Goldbach</button>\n"
+    << "  </form>\n"
+    << "  <hr><p><a href=\"/\">Back</a></p>\n"
+    << "</html>\n";
+
+  // Send the response to the client (user agent)
+  return httpResponse.send();
+end procedure
+
+
+procedure GoldbachAnaUri::analizarUri(httpRequest, httpResponse) do
+  // Set HTTP response metadata (headers)
+  httpResponse.setHeader("Server", "AttoServer v1.0");
+  httpResponse.setHeader("Content-type", "text/html; charset=ascii");
+  // Permitir el ingreso a impresión de factorización si entran uno o más
+  // números enteros separados por comas
+  matches := []
+  inQuery := "^/goldbach/goldbach(/|\\?numbers=)((-?\\d+)(%2C(-?\\d+))*)$";
+    if regex_search(httpRequest.getURI(), matches, inQuery) do
+      // Declarar vector a utilizar
+      valores := [];
+      resultados := [];
+      // Separar los valores de la URL
+      separarValoresURL(matches[2], &valores);
+      // Crear request
+      request := GoldbachInfo(httpResponse, httpRequest);
+      request->setNumeros(valores);
+      limite := request->getCantidadNumeros();
+      for index from 0 to limite do
+        numeroG(request->getNumero(index),index, request);
+        this->producingQueue->enqueue(numeroG);
+      end for
+    else
+      crearCuerpoInvalidRequest(httpResponse);
+    end if
+end procedure
+
+procedure GoldbachAnaUri::separarValoresURL(strValores, valores) do
+  matches_count := 0;
+  matches := [];
+  // Valore por buscar son enteros positivos o negativos
+  inQuery := "-\\d+|\\d+";
+  while regex_search(strValores, matches , inQuery) do
+    // Agregar al vector únicamente valores que no conforme el %2C(,)
+    if matches_count % 2 == 0 do
+      actual_number := stoll(matches[0]);
+      valores->push_back(actual_number);
+    end if
+    // Cadena pasa a ser la subcadena posterior al número encontrado
+    strValores := matches.suffix().str();
+    matches_count := matches_count + 1;
+  end while
+end procedure
+
+
+procedure GoldbachAnaUri::crearCuerpoInvalidRequest(httpResponse) do
+  title := "Invalid request";
+  httpResponse.body() << "<!DOCTYPE html>\n"
+    << "<html lang=\"en\">\n"
+    << "  <meta charset=\"ascii\"/>\n"
+    << "  <title>" << title << "</title>\n"
+    << "  <style>body {font-family: monospace} .err {color: red}</style>\n"
+    << "  <h1 class=\"err\">" << title << "</h1>\n"
+    << "  <p>Invalid request for factorization</p>\n"
+    << "  <hr><p><a href=\"/\">Back</a></p>\n"
+    << "</html>\n";
+end procedure

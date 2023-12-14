@@ -1,0 +1,13 @@
+procedure GoldbachRequestCompleto() do 
+end produce
+
+procedure GoldbachRequestCompleto::run() do
+  this->consumeForever();
+  return EXIT_SUCCESS;
+end procedure
+
+procedure GoldbachRequestCompleto::consume(numeroG) do
+  if numeroG.direccionRequest->hemosTerminado(numeroG) do
+    this->produce(numeroG.direccionRequest);
+  end if
+end procedure

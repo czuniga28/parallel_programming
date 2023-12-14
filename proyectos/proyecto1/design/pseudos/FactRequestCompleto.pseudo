@@ -1,0 +1,13 @@
+procedure FactRequestCompleto() do 
+end produce
+
+procedure FactRequestCompleto::run() do
+  this->consumeForever();
+  return EXIT_SUCCESS;
+end procedure
+
+procedure FactRequestCompleto::consume(numeroF) do
+  if numeroF.direccionRequest->hemosTerminado(numeroF) do
+    this->produce(numeroF.direccionRequest);
+  end if
+end procedure

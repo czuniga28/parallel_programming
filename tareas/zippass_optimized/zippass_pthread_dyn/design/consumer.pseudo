@@ -1,0 +1,28 @@
+procedure consume(data)
+    private_data <- cast data to private_data_t
+    while true do
+        mutex_lock(private->shared_data->can_search_pass)
+        if private->shared_data->passFound is true then
+            mutex_unlock(private->shared_data->can_search_pass)
+            break  // Exit the loop
+        mutex_unlock(private->shared_data->can_search_pass)
+
+        wait_for_permission_to_consume(private->shared_data)
+
+        pass <- dequeue_password(private->shared_data->queue)
+
+        if pass is null then
+            break  // Exit the loop
+
+        error <- open_zip_file(private->shared_data->path, pass, private->shared_data)
+
+        if error is equal to EXIT_SUCCESS then
+            mutex_lock(private->shared_data->can_search_pass)
+            private->shared_data->passFound <- true
+            private->shared_data->password <- pass
+            mutex_unlock(private->shared_data->can_search_pass)
+            return  // Exit the thread
+
+        free_memory(pass)  // Free memory allocated for the dequeued password
+    end while
+end procedure

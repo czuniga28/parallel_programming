@@ -1,0 +1,17 @@
+procedure main:
+  declare const previous_process = \
+    (process_count + process_number - 1) % process_count // usando logica modular para obtener el proceso anterior. usamos process_count para saber que process_number no es negativo
+  declare const next_process = (process_number + 1) % process_count // usando logica modular para obtener el proceso siguiente
+  declare can_print := true // bool que funciona como semaforo mostro
+
+  if process_number > 0 then
+  // esperar a que el anterior termine
+    receive(&can_print, 1, previous_process) // se usa & para decir que vamos a cambiar el valor de can_print
+  end if
+  print "Hello from main thread of process ", process_number, " of " \
+    , process_count," on ", process_hostname
+    // manda mensajes a proceso y se bloquea hasta que
+    // se sabe que el mensaje fue enviado
+    // synchonic IO/ half blocking IO
+  send(can_print, 1, next_process) // enviar al siguiente proceso (int)
+end procedure

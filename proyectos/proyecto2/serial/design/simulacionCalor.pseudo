@@ -1,0 +1,264 @@
+procedure format_time(seconds) do
+  text := new char[48]  // YYYY/MM/DD hh:mm:ss
+  gmt := gmtime(&seconds)
+  snprintf(text, sizeof text, "%04d/%02d/%02d\t%02d:%02d:%02d", gmt.tm_year
+    - 70, gmt.tm_mon, gmt.tm_mday - 1, gmt.tm_hour, gmt.tm_min, gmt.tm_sec)
+  return text
+end procedure
+
+procedure escrituraArchivoReporte(infoSimulaciones) do
+  // Concatenar la ruta de la carpeta con el nombre del archivo
+  rutaCompleta := infoSimulaciones[0].carpeta + "/output.txt"
+  archivoInfo := new std::ofstream(rutaCompleta, std::ios::trunc)
+
+  // Verificar si el archivo se abrió
+  if  !archivoInfo do
+    Imprimir "Error con el archivo de salida"
+    Devolver EXIT_FAILURE
+  end if
+
+  for (size_t simulacion; simulacion < infoSimulaciones.size(); simulacion++ )do
+    totalTiempo := infoSimulaciones[simulacion].estado *
+      infoSimulaciones[simulacion].tiempo
+    // Se agregan los datos al archivo output
+    archivoInfo << infoSimulaciones[simulacion].binario << "\t"
+    archivoInfo << infoSimulaciones[simulacion].tiempo << "\t"
+    archivoInfo << infoSimulaciones[simulacion].difusividadTermica << "\t"
+    archivoInfo << infoSimulaciones[simulacion].dimensiones << "\t"
+    archivoInfo << infoSimulaciones[simulacion].epsilon << "\t"
+    archivoInfo << infoSimulaciones[simulacion].estado << "\t"
+
+    // Formatear el tiempo transcurrido
+    archivoInfo << format_time(cast<time_t>(totalTiempo)) << std::endl
+  end 
+
+  // Cerrar archivo
+  archivoInfo.close()
+
+  print "Se ha generado el ouput en la carpeta:" << carpeta
+  return EXIT_SUCCESS
+end procedure
+
+
+procedure lecturaArchivoTrabajo(rutaArchivo, infoSimulaciones) do
+  archivo := new std::ifstream(rutaArchivo)
+
+  // Verificar si se abrió el archivo correctamente
+  if !archivo do
+    Imprimir "Error al abrir el archivo."
+    Devolver EXIT_FAILURE
+  end if
+
+  // Continuar sacando información hasta que se lean todas las líneas
+  barra := rutaArchivo.rfind("/")
+  linea := new std::string
+  while getline(archivo, linea) hacer
+    info := nueva infoSimulacion_t
+    info.carpeta := rutaArchivo.substr(0, barra + 1)
+    // Almacenar información de la simulación en un vector de infoSimulacion
+    if leerLineaTxt(info, linea) do
+      infoSimulaciones.push_back(info)
+    end if
+
+  return EXIT_SUCCESS
+end procedure
+
+
+procedure leerLineaTxt(infoSimulacion, linea) do
+  ss := nueva std::istringstream(linea)  // Trata un string como si fuera un cin
+  campos := nueva std::vector<std::string>
+
+  // Dividir la línea en campos
+  campo := nueva std::string
+  Mientras ss >> campo hacer  // Extrae de ss hacia campo como si se leyera de la std
+    campos.push_back(campo)
+  Fin mientras
+
+  // Verificar que haya exactamente 5 campos en la linea del txt
+  if campos.size() != 5 do
+    Imprimir "Error: La línea no tiene 5 campos."
+    Devolver false
+  end if
+
+  // Asignar valores a los miembros del struct
+  infoSimulacion.ruta := infoSimulacion.carpeta + campos[0]
+  infoSimulacion.binario := campos[0]
+  infoSimulacion.tiempo := std::stod(campos[1])
+  infoSimulacion.difusividadTermica := std::stod(campos[2])
+  infoSimulacion.dimensiones := std::stod(campos[3])
+  infoSimulacion.epsilon := std::stod(campos[4])
+
+  return true
+end procedure
+
+// Procedimiento para la lectura de la placa desde un archivo binario
+procedure lecturaPlaca(infoSimulacion) do
+  ruta := infoSimulacion.ruta
+  archivo := nuevo std::ifstream(ruta, std::ios::binary)
+
+  // Verificar si se pudo abrir el archivo
+  if !archivo do 
+    print "Error: No se pudo leer la placa " << ruta
+    return EXIT_FAILURE
+  end
+
+  // Leer el tamaño de la matriz
+  archivo.read(reinterpret_cast<char*>(&infoSimulacion.filas), sizeof(size_t))
+  archivo.read(reinterpret_cast<char*>(&infoSimulacion.columnas), sizeof(size_t))
+
+  // Crear una matriz temporal
+  matrizDePaso1 := nuevo std::vector<std::vector<double>>
+
+  // Redimensionar la matriz temporal
+  matrizDePaso1.resize(infoSimulacion.filas)
+
+  // Establecer referencia para facilitar su uso
+  matrizDePaso2 := *matrizDePaso1
+
+  // Leer los valores de la matriz desde el archivo
+  for fila := 0 hasta infoSimulacion.filas - 1 do
+    matrizDePaso2[fila].resize(infoSimulacion.columnas)
+    for columna := 0 hasta infoSimulacion.columnas - 1 do
+      archivo.read(reinterpret_cast<char*>(&matrizDePaso2[fila][columna]), sizeof(double))
+    end
+  end
+
+  // Cerrar el archivo
+  archivo.close()
+
+  // Crear las matrices necesarias para la simulación
+  infoSimulacion.placaFutura.resize(infoSimulacion.filas, std::vector<double>(infoSimulacion.columnas))
+  infoSimulacion.placaPasada.resize(infoSimulacion.filas, std::vector<double>(infoSimulacion.columnas))
+
+  // Transferir valores de la matriz temporal a las matrices de la simulación
+  for fila := 0 hasta infoSimulacion.filas - 1 do
+    for columna := 0 hasta infoSimulacion.columnas - 1 do
+      infoSimulacion.placaFutura[fila][columna] := matrizDePaso2[fila][columna]
+      infoSimulacion.placaPasada[fila][columna] := matrizDePaso2[fila][columna]
+    end
+  end
+
+  // Liberar la memoria utilizada por la matriz temporal
+  delete matrizDePaso1
+
+  return EXIT_SUCCESS
+End procedure
+
+
+procedure escrituraPlaca(infoSimulacion) do
+  // Construir la ruta del archivo de salida
+  ruta := infoSimulacion.ruta.substr(0, infoSimulacion.ruta.length() - 4)
+  ruta += "-" + std::to_string(infoSimulacion.estado) + ".bin"
+  archivo := nuevo std::ofstream(ruta, std::ios::binary)
+
+  // Verificar si se pudo crear el archivo
+  if !archivo do 
+    print "Error: No se pudo crear el archivo para la placa " << ruta
+    return EXIT_FAILURE
+  end
+
+  // Escribir el tamaño de la matriz en el archivo
+  archivo.write(reinterpret_cast<char*>(&infoSimulacion.filas), sizeof(size_t))
+  archivo.write(reinterpret_cast<char*>(&infoSimulacion.columnas), sizeof(size_t))
+
+  // Escribir los valores de la matriz en el archivo
+  for fila := 0 hasta infoSimulacion.filas - 1 do
+    for columna := 0 hasta infoSimulacion.columnas - 1 do
+      // Escribir en el archivo el valor [fila][columna] de la placa
+      archivo.write(reinterpret_cast<char*>(&infoSimulacion.placaFutura[fila][columna]), sizeof(double))
+    end
+  end
+  // Cerrar el archivo
+  archivo.close()
+
+  return EXIT_SUCCESS
+End procedure
+
+
+procedure siguienteEstado(fila, columna, infoSimulacion) do
+  // Sumar celda superior, derecha, inferior, izquieda
+  sumaCeldasVecinas := información.placaPasada[fila-1][columna]
+  sumaCeldasVecinas := sumaCeldasVecinas + infoSimulacion.placaPasada[fila][columna+1]
+  sumaCeldasVecinas := sumaCeldasVecinas + infoSimulacion.placaPasada[fila+1][columna]
+  sumaCeldasVecinas := sumaCeldasVecinas + infoSimulacion.placaPasada[fila][columna-1]
+  
+  // Energia perdida por la celda
+  energiaPerdida := 4 * infoSimulacion.placaPasada[fila][columna]
+
+  // Factor de la simulacion
+  factor := (infoSimulacion.tiempo * infoSimulacion.difusividadTermica) /
+    (infoSimulacion.dimensiones*infoSimulacion.dimensiones)
+
+  // Nueva temperatura de la celda
+  infoSimulacion.placaFutura[fila][columna] infoSimulacion.placaPasada[fila][columna] +
+    factor * (sumaPlacasVecinas - energiaPerdida)
+end procedure
+
+procedure prepararSimulacion(infoSimulacion) do
+  // Cambiar tamaño de las placas de infoSimulacion
+  infoSimulacion.filas := 0;
+  infoSimulacion.columnas := 0;
+  infoSimulacion.placaFutura [infoSimulacion.filas][infoSimulacion.columnas];
+  infoSimulacion.placaPasada [infoSimulacion.columnas][infoSimulacion.columnas];
+
+  // Leer placa de entrada
+  if lecturaPlaca(infoSimulacion) == EXIT_FAILURE do
+    print "Error en archivo binario"
+    return EXIT_FAILURE
+  end if
+
+  // Empezar simulación de calor
+  infoSimulacion.estado := empezarSimulacion(infoSimulacion);
+
+  // Escribir en archivo placa con valores obtenidos
+  escrituraPlaca(infoSimulacion);
+
+  return EXIT_SUCCESS;
+end procedure
+
+procedure empezarSimulacion(infoSimulacion) do
+  while true do
+    // Actualiza valor de estado
+    infoSimulacion.estado := infoSimulacion.estado + 1
+
+    // Pasar celdas de la placa al siguiente estado
+    for  indexI := 1 to infoSimulacion.filas - 2 do
+      for indexJ := 1 to infoSimulacion.columnas - 2 do
+        siguienteEstado(indexI, indexJ, infoSimulacion);
+      end for
+    end for
+
+    // Verificar si la tempertatua esta equilibrada
+    if (temperaturaEquilibrada(infoSimulacion) == true) {
+      // retorna el estado k en el que se equilibro la temperatura
+      return infoSimulacion.estado;
+    }
+
+    // Almacenar valores de la placa creada en la placa actual si no se ha equilibrado
+    igualarPlacas(infoSimulacion.filas-1, infoSimulacion.columnas-1, infoSimulacion);
+  end while
+
+  return 0
+end procedure
+
+procedure igualarPlacas(ultimaFila, ultimaColumna, infoSimulacion) do
+  for i := 0 to ultimaFila do
+    for j := 0 to ultimaColumna do
+      // Celda de placa pasada pasa a ser igual a celda de placa futura
+      infoSimulacion.placaPasada[i][j] := infoSimulacion.placaFutura[i][j];
+    end for
+  end for
+end procedure
+
+procedure temperaturaEquilibrada(infoSimulacion) do
+  for indexI := 1 to infoSimulacion.filas-2 do
+    for indexJ := 1 to infoSimulacion.columnas-2 do
+      // Diferencia entre placa anterior y futura es mayor a epsilon la placa no esta equilibrada
+      if absoluteValue(infoSimulacion.placaFutura[indexI][indexJ] - infoSimulacion.placaPasada[indexI][indexJ]) > infoSimulacion.epsilon do
+        return false;
+      end for
+    end for
+  end for
+
+  return true;
+end procedure

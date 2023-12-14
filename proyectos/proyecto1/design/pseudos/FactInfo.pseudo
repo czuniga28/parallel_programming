@@ -1,0 +1,73 @@
+procedure FactInfo() do
+end procedure
+
+procedure FactInfo::~FactInfo() do
+end procedure
+
+procedure FactInfo::FactInfo() do
+    // Inicialización
+end procedure
+
+function FactInfo::operator==(otroFactInfo) do
+    return (this->factorizacionesTotalCantidad ==
+      otroFactInfo.factorizacionesTotalCantidad) and
+      (this->trabajados == otroFactInfo.trabajados)
+end function
+
+procedure FactInfo::setFactorizacion(fact, posicion) do
+    this->factorizaciones[posicion] := fact
+end procedure
+
+function FactInfo::getCantidadNumeros() do
+    return this->numeros.size()
+end function
+
+function FactInfo::hemosTerminado(NumeroF) do
+    // Actualización de variables
+end function
+
+procedure FactInfo::setNumeros(numeros) do
+    this->numeros.reserve(numeros.size())
+    limite := numeros.size()
+    for index until limite - 1 do
+        this->numeros.emplace_back(numeros[index])
+    end for
+    this->factorizaciones.resize(numeros.size())
+    this->basesCantidades.reserve(numeros.size())
+end procedure
+
+procedure FactInfo::impresionResultadosDefinitivos() do
+    title := "Prime factorization of ";
+    body := "";
+    vector<int64_t> valores := this->numeros;
+    vector<vector<tuple<int64_t, int64_t>>> resultados := this->factorizaciones;
+    for i until valores.size() - 1 do
+        title := title + to_string(valores[i]);
+        if i != valores.size() - 1 then
+            title := title + ", ";
+        end if
+        body := body + "  <h2>" + to_string(valores[i]) + "</h2>\n";
+        body := body + "  <p>" + to_string(valores[i]) + " : ";
+        if valores[i] == 1 or valores[i] == 0 then
+            body := body + "NA";
+        else if valores[i] < 0 then
+            body := body + "invalid number";
+        else
+            for j from 0 to resultados[i].size() - 1 do
+                body := body + to_string(get<0>(resultados[i][j]));
+                if get<1>(resultados[i][j]) != 1 then
+                    body := body + "<sup>" + to_string(get<1>(resultados[i][j]))
+                    + "</sup>";
+                end if
+                body := body + " ";
+            end for
+        end if
+        body := body + "</p>\n";
+    end for
+    this->impresionAuxiliar(title, body);
+end procedure
+
+procedure FactInfo::impresionAuxiliar(title, body) do
+    this->response.body() << "body of the html"
+    this->response.send();
+end procedure

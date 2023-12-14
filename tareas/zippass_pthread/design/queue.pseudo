@@ -1,0 +1,16 @@
+procedure queue_init(queue)
+    Initialize an empty queue with semaphores and mutex
+
+procedure queue_queue(queue, text)
+    Add a text element to the queue
+    Signal that an element is available to consume
+
+function queue_dequeue(queue)
+    Wait for an element to consume
+    Extract and return the next text element
+
+function queue_is_empty(queue)
+    Check if the queue is empty
+
+procedure queue_destroy(queue)
+    Clear the queue and free resources

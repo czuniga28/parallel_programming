@@ -1,0 +1,61 @@
+procedure main(argc, argv[]):
+  if argc = 7 then
+  // Variables compartidas
+    // Saca los parametros dados al ejecutar el programa
+    shared buffer_capacity := integer(argv[1])
+    shared buffer as array of buffer_capacity of float
+    shared rounds := integer(argv[2])
+    shared producer_min_delay := integer(argv[3])
+    shared producer_max_delay := integer(argv[4])
+    shared consumer_min_delay := integer(argv[5])
+    shared consumer_max_delay := integer(argv[6])
+
+    /* Se crea el semaforo del productor y se le da como arg la capacidad del
+    buffer para indicar cuanto se puede producir*/
+    shared can_produce := create_semaphore(buffer_capacity)
+
+    /* Se inicializa en 0 ya que no se puede consumir nada porque el buffer
+    esta vacio*/
+    shared can_consume := create_semaphore(0)
+
+    // Crea un solo productor y un consumidor
+    create_threads(1, produce)
+    create_threads(1, consume)
+  end if
+end procedure
+
+procedure produce:
+  /* declaramos variable que indica la cantidad de vueltas que le tiene que dar
+  el productor al buffer*/
+  declare count := 0
+  for round := 1 to rounds do
+    for index := 0 to buffer_capacity do
+      wait(can_produce)  // pone a producir si hay espacio
+      // se simula un delay para las pruebas
+
+      delay(random_between(producer_min_delay, producer_max_delay))
+      buffer[index] := ++count
+      print("Produced ", buffer[index])
+
+      signal(can_consume)  // avisa que se termino la tarea y puede seguir cons
+    end for
+  end for
+end procedure
+
+procedure consume:
+  for round := 1 to rounds do
+    for index := 0 to buffer_capacity do
+      wait(can_consume)  // espera para ver si hay algo que consumir
+
+      value := buffer[index]  // extrae del buffer
+      delay(random_between(consumer_min_delay, consumer_max_delay))
+      print("Consumed ", value)
+
+      signal(can_produce)  // tiene un espacio libre para producir
+    end for
+  end for
+end procedure
+
+function random_between(min, max):
+  return min + rand() % (max - min)
+end function

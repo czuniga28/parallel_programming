@@ -1,0 +1,16 @@
+procedure produce(data)
+    shared <- cast data to shared_data_t
+
+    for passLength from 1 to shared.maxSizePassword
+        con <- calculate_combinations_count(shared.alfa, passLength)
+
+        for numToChange from 0 to con - 1
+            password <- generate_password_guess(numToChange, passLength, shared.alfa)
+            queue_add_password(shared.queue, password)
+            signal_consumer(shared)
+
+    for thread_number from 0 to shared.thread_count
+        queue_add_special_value(shared.queue, NULL)
+        signal_consumer(shared)
+
+    return NULL

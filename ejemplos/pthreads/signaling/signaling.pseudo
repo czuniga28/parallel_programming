@@ -1,0 +1,15 @@
+procedure main() {
+  shared can_run_b1:= create_semaphore(0)  // inicia semaforo en 0 para control
+  create_thread(thread_a)
+  create_thread(thread_b)
+}
+
+procedure thread_a() {
+  statement_a1
+  signal(can_run_b1)  // avisa que ya se puede ejecutar b1
+}
+
+procedure thread_b() {
+  wait(can_run_b1)  // Espera a que se haya ejecutado a1 para ejecutar b1
+  statement_b1
+}

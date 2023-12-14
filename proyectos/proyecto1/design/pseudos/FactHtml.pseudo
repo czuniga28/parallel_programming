@@ -1,0 +1,13 @@
+procedure FactHtml() do
+end procedure
+
+procedure FactHtml::run() do
+  this->consumeForever();
+  return EXIT_SUCCESS;
+end procedure
+
+procedure FactHtml::consume(factInfo) do
+  factInfo->impresionResultadosDefinitivos();
+  delete(factInfo);
+end procedure
+

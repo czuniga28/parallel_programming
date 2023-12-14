@@ -1,0 +1,14 @@
+procedure main:
+  shared constant skater_count = read_integer()  // 200
+  shared constant skater_capacity = read_integer()  // 50 49 48 ... 0 -1 ... 150
+  // semforo con la capacidad de la pista
+  shared can_skate := create_semaphore(skater_capacity)
+  create_threads(thread_count, secondary)
+end procedure
+
+procedure secondary:
+  // Bounded waiting
+  wait(can_skate)  // resta semaforo con la capacidad de skaters
+  skate() 
+  signal()
+end procedure

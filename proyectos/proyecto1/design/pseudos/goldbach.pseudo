@@ -1,0 +1,145 @@
+// Método para trabajar con la Conjetura de Goldbach
+procedure ConjeturaGoldbach::trabajarConjeturaGoldbach(sumas) do
+    this->sumandos.reserve(sumas.size())
+    for each suma in sumas do
+        if suma < 0 do
+            if (abs(suma) > 5) do
+                suma := -suma
+            else
+                suma := 1
+            end if
+        end if
+
+        if suma % 2 == 0 do
+            this->sumandos.push_back(this->sumaPrimosPares(suma))
+        else
+            this->sumandos.push_back(this->sumaPrimosImpares(suma))
+        end if
+    end for
+
+    this->sumas := sumas
+    this->sumandos := resultados
+end procedure
+
+// Función para calcular las sumas de primos impares
+procedure ConjeturaGoldbach::sumaPrimosImpares(suma) do
+    hastaN := CribaEratostenes()
+    hastaN.calcularPrimos(suma)
+    resultado := []
+
+    if suma <= 5 do
+        resultado.push_back([0, 0])
+        return resultado
+    end if
+
+    numerosPrimos := hastaN.getNumerosPrimos()
+    n := static_cast<int64_t>(numerosPrimos.size())
+    numMap := unordered_map<int64_t, int64_t>()
+
+    for i from 0 to n - 1 do
+        numMap[numerosPrimos[i]] := i
+    end for
+
+    for a from 0 to n - 1 do
+        for b from a to n - 1 do
+            target := suma - (numerosPrimos[a] + numerosPrimos[b])
+            it := numMap.find(target)
+
+            if it != numMap.end() and it->second >= b do
+                resultado.push_back([numerosPrimos[a], numerosPrimos[b], it->first])
+                this->sumasEncontradas += 1
+            end if
+        end for
+    end for
+
+    return resultado
+end procedure
+
+// Función para calcular las sumas de primos pares
+procedure ConjeturaGoldbach::sumaPrimosPares(suma) do
+    hastaN := CribaEratostenes()
+    hastaN.calcularPrimos(suma)
+    resultado := []
+
+    if suma <= 5 do
+        resultado.push_back([0, 0])
+        return resultado
+    end if
+
+    numerosPrimos := hastaN.getNumerosPrimos()
+    n := static_cast<int64_t>(numerosPrimos.size())
+    numMap := unordered_map<int64_t, int>()
+
+    for a from 0 to n - 1 do
+        currentA := numerosPrimos[a]
+        target := suma - currentA
+
+        if numMap.find(target) != numMap.end() do
+            resultado.push_back([currentA, target])
+            this->sumasEncontradas += 1
+        end if
+
+        numMap[currentA] := a
+    end for
+
+    return resultado
+end procedure
+
+// Procedimiento para imprimir la Conjetura de Goldbach
+procedure ConjeturaGoldbach::imprimirConjeturaGoldbach() do
+    for suma from 0 to static_cast<int64_t>(this->getSumas().size()) do
+        cout << this->getSumas()[suma] << ": "
+        if this->getSumas()[suma] <= 5 do
+            verificacion := this->getSumas()[suma]
+            if (verificacion * -1) > 5 do
+                this->ImprimirSumaPrimos(this->getSumandos()[suma], true)
+            else
+                cout << "NA" << endl
+            end if
+        else
+            this->ImprimirSumaPrimos(this->getSumandos()[suma], false)
+        end if
+    end for
+end procedure
+
+// Procedimiento para imprimir las sumas de primos
+procedure ConjeturaGoldbach::ImprimirSumaPrimos(sumaPrimos, imprimir) do
+    cout << sumaPrimos.size() << " sums" << endl
+    if imprimir do
+        for each terno in sumaPrimos do
+            for each num in terno do
+                cout << num
+                if num != terno.back() do
+                    cout << "+"
+                end if
+            end for
+            cout << ", "
+        end for
+        cout << endl
+    end if
+end procedure
+
+// Función para obtener la cantidad de sumas encontradas
+function ConjeturaGoldbach::getSumasEncontradas() do
+    return this->sumasEncontradas
+end function
+
+// Procedimiento para consumir números y realizar la conjetura
+procedure ConjeturaGoldbach::consume(NumeroG numeroG) do
+    trabajo := [numeroG.numero]
+    this->trabajarConjeturaGoldbach(trabajo)
+    numeroG.totalSumas := this->sumasEncontradas
+
+    if numeroG.numero < 0 do
+        prueba := this->sumandos.back()
+        numeroG.direccionRequest->setSuma(prueba, numeroG.posicion)
+    end if
+
+    this->produce(numeroG)
+end procedure
+
+// Función para ejecutar el programa
+function ConjeturaGoldbach::run() do
+    this->consumeForever()
+    return EXIT_FAILURE
+end function

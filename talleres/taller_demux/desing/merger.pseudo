@@ -1,0 +1,32 @@
+create stop_condition
+create received_stop_conditions
+create num_producers
+create queue_array[num_producers]
+create can_consume := sem_init(0)
+create continue_while = true
+
+procedure consumeForever do
+  while (continue_while) do
+    create data
+    wait(can_consume)
+    for i = 0 until i = num_producers-1 do
+      if !queue_array[i]->is_empty() {
+        data = queue_array[i]->dequeue()
+        if (data == stop_condition) {
+          received_stop_conditions++
+          if (received_stop_conditions == num_producers) {
+            continue_while = false
+            break
+          }
+        }
+        consume()
+        i = num_producers
+      }
+    end
+  end
+end
+
+procedure consume do
+  producing_queue->enqueue()
+end
+    

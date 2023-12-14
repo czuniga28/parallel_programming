@@ -1,0 +1,62 @@
+// Método para factorizar números primos
+procedure Factorizar(numeros) do
+    // Asigna los números de entrada a "factorizados"
+    this.factorizados := numeros
+    // Declara un vector de vectores de tuplas para almacenar los resultados
+    resultados := []
+
+    // Para cada número en la lista de números
+    for cada numero en numeros do
+        // Inicializa un vector de tuplas para los factores del número actual
+        factores := []
+
+        // Si el número es igual a 0 o es negativo
+        if numero == 0 o numero < 0 then
+            // Agregar tupla con factores -2 y -2 al vector de factores para
+            // manejo a la hora de mostrar resultados
+            factores.agregar((-2, -2))
+        end if 
+        
+        else if  numero == 1 then
+            // Agregar tupla con factores -1 y -1 al vector de factores para
+            // manejo al hora de mostrar 
+            factores.agregar((-1, -1))
+        end if 
+        else then
+            // Crea una instancia de la Criba de Eratóstenes
+            criba := nueva CribaEratostenes()
+            // Calcula los números primos hasta el número actual
+            criba.calcularPrimos(número)
+
+            // Para cada primo en la lista de primos generados
+            for cada primo en criba.getNumerosPrimos() do
+                // Inicializa el exponente en 0
+                exponente := 0
+                // Mientras el número actual sea divisible por el primo
+                while numero % primo == 0 do 
+                    // Incrementa el exponente porque se encuentra factor
+                    exponente := exponente + 1
+                    // Divide el número actual por el primo para buscar otros
+                    numero := numero / primo
+                end while
+                // Si el exponente es mayor que 0
+                if exponente > 0 then
+                    // Agrega una tupla con el primo y el exponente al vector de factores
+                    factores.agregar((primo, exponente))
+                end if 
+            end for
+
+            // Si el número actual es mayor que 1 después de la factorización
+            if numero > 1 then
+                // Agrega una tupla con el número y exponente 1 al vector de factores
+                factores.agregar((número, 1))
+            end if 
+        end else
+
+        // Agrega el vector de factores del número actual al vector de resultados
+        resultados.agregar(factores)
+    end for
+
+    // Asigna los resultados a "factorizaciones"
+    this.factorizaciones := resultados
+end procedure

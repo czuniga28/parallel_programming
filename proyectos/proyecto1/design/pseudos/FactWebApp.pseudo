@@ -1,0 +1,78 @@
+procedure FactWebApp() do
+end procedure
+
+procedure FactWebApp::~FactWebApp() do
+end procedure
+
+procedure FactWebApp::start() do
+    // Cantidad de calculadoras igual a la cantidad de hilos del sistema
+    calculator_count := HttpServer::getInstance().getWorkers();
+    // Establecer llave del WebApp
+    this->key = "fact"
+    // instanciar Analizador
+    this->anaUri = new FactAnaUri();
+    this->anaUri->createOwnQueue();
+    // Inicializar calculadoras de la Factorial
+    this->solvers.resize(calculator_count);
+    for calculator_index := 0 to calculator_count do
+        if calculator_index == 0 do
+          //! this->solvers[i]->createOwnQueue();
+          this->solvers[i]->setConsumingQueue(&this->colaDeNumeros);
+          this->solvers[i]->setProducingQueue(&this->colaDeResultados);
+        else
+          this->solvers[i]->setConsumingQueue(
+          this->solvers[0]->getConsumingQueue());
+          this->solvers[i]->setProducingQueue(&this->colaDeResultados);
+        end if
+    end for
+    this->anaUri->setProducingQueue(this->solvers[0]->getConsumingQueue());
+
+    // cola de entrada
+    this->entranceQueue = this->anaUri->getConsumingQueue();
+    this->anaUri->startThread();
+    // Inicializar verificardor de request completos
+    this->verificador := FactRequestCompleto()
+    this->verificador->setConsumingQueue(this->colaResultados)
+    this->verificador->setProducingQueue(this->colaRequest)
+    this->verificador->startThread()
+    // Inicializar creador de cuerpos
+    this->dispatcher := FactRequestDispatcher()
+    this->dispatcher->setConsumingQueue(this->colaRequest)
+    this->dispatcher->startThread()
+end procedure
+
+procedure FactWebApp::stop() do
+  limite = this->calculadoras.size()
+  // Enviar a detener calculadoras
+  for index := 0 to limite do
+    this->colaDeNumeros.enqueue(NumeroG())
+  end for
+  for index := 0 to limite do
+    this->calculadoras[index]->waitToFinish();
+  end for
+  // Detener verificardor de request completos
+  this->colaDeResultados.enqueue(NumeroG());
+  this->verificador->waitToFinish();
+  // Detener dispatcher
+  this->colaDeRequest.enqueue(nullptr);
+  this->dispatcher->waitToFinish();
+end procedure
+
+function FactWebApp::handleHttpRequest(httpRequest, httpResponse) do
+    // Si se solicitó la página de inicio con "fact?number="
+    if (httpRequest.getMethod() == "GET" && httpRequest.getURI() == "/" do
+        this->serveHomepage(httpRequest, httpResponse);
+    end if
+    // Solicitud no reconocida
+    return false
+end function
+
+function FactWebApp::serveHomepage(httpRequest, httpResponse) do
+    httpResponse.setHeader("Server", "AttoServer v1.1")
+    httpResponse.setHeader("Content-type", "text/html; charset=ascii")
+
+    title := "Factorización Prima"
+    httpResponse.body() << "HTML code for the body"
+
+    return httpResponse.send()
+end function

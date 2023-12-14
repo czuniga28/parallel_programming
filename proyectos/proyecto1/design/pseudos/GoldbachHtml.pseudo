@@ -1,0 +1,12 @@
+procedure GoldbachHtml() do
+end procedure
+
+procedure GoldbachHtml::run() do
+  this->consumeForever();
+  return EXIT_SUCCESS;
+end procedure
+
+procedure GoldbachHtml::consume(goldbachInfo) do
+  goldbachInfo->impresionResultadosDefinitivos();
+  delete(goldbachInfo);
+end procedure

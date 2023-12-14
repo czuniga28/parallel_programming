@@ -1,0 +1,60 @@
+procedure controller_run(thread_count)
+    create an empty dynamic array (array)
+
+    allocate memory for shared data (shared_data)
+    initialize an empty queue in shared data
+
+    allocate memory for an array of private data with size thread_count
+    for each private data element
+        link it to shared data
+        set the thread number
+
+    initialize mutexes and semaphores in shared data
+
+    set the thread count in shared data
+
+    create a producer thread
+
+    allocate memory for an array of consumer threads (consumers)
+
+    allocate memory for an alfa character array
+    read alfa and maxSizePassword from input
+
+    initialize a counter (cont)
+
+    while true
+        allocate memory for a file path (filePath)
+        read a string from stdin into filePath
+        if reading fails, break
+        append filePath to the dynamic array
+        increment cont
+        free filePath
+
+    for each file path in the dynamic array
+        create a producer thread
+        wait for the producer thread to finish
+
+        reset the passFound flag
+        set the file path and password in shared data
+
+        for each consumer thread
+            set the thread number
+            create a consumer thread
+
+        wait for all consumer threads to finish
+
+        if a password is found
+            allocate memory for the password in the dynamic array
+            copy the password
+            free the password in shared data
+
+    for each file in the dynamic array
+        print the file path
+        if a password is found
+            print the password
+        else
+            print an empty line
+
+    free resources (memory, mutexes, semaphores)
+
+    return EXIT_SUCCESS

@@ -1,0 +1,81 @@
+procedure GoldbachWebApp() do
+end procedure
+
+procedure GoldbachWebApp::~GoldbachWebApp() do
+end procedure
+
+procedure GoldbachWebApp::getItnstance() do
+    instance := GoldbachWebApp()
+    return instance
+end
+
+procedure GoldbachWebApp::start() do
+    // Cantidad de calculadoras igual a la cantidad de hilos del sistema
+    calculator_count := HttpServer::getInstance().getWorkers();
+    // Establecer llave del WebApp
+    this->key _= "goldbach"
+    // Inicializar analizador de URIs
+    this->anaUri := GoldbachAnaUri();
+    this->anaUri->createOwnQueue();
+    // Inicializar calculadoras de la conjetura de Goldbach
+    this->solvers.resize(calculator_count);
+    for calculator_index := 0 to calculator_count do
+        if calculator_index == 0 do
+          this->solvers[i]->setConsumingQueue(&this->colaDeNumeros);
+          this->solvers[i]->setProducingQueue(&this->colaDeResultados);
+        else
+          this->solvers[i]->setConsumingQueue(this->solvers[0]->getConsumingQueue());
+          this->solvers[i]->setProducingQueue(&this->colaDeResultados);
+        end if
+    end for
+    this->anaUri->setProducingQueue(this->solvers[0]->getConsumingQueue());
+    // cola de entrada
+    this->entranceQueue := this->anaUri->getConsumingQueue();
+    this->anaUri->startThread();
+    for index := 0 to calculator_count do
+      this->solvers[index]->startThread();
+    end
+    // Inicializar verificardor de request completos
+    this->verificador := GoldbachRequestCompleto()
+    this->verificador->setConsumingQueue(this->colaResultados)
+    this->verificador->setProducingQueue(this->colaRequest)
+    this->verificador->startThread()
+    // Inicializar creador de cuerpos
+    this->dispatcher := GoldbachRequestDispatcher
+    this->dispatcher->setConsumingQueue(this->colaRequest)
+    this->dispatcher->startThread()
+end procedure
+
+procedure GoldbachWebApp::stop() do
+  limite = this->calculadoras.size()
+  // Enviar a detener calculadoras
+  for index := 0 to limite do
+    this->colaDeNumeros.enqueue(NumeroG())
+  end for
+  for index := 0 to limite do
+    this->calculadoras[index]->waitToFinish();
+  end for
+  // Detener verificardor de request completos
+  this->colaDeResultados.enqueue(NumeroG());
+  this->verificador->waitToFinish();
+  // Detener dispatcher
+  this->colaDeRequest.enqueue(nullptr);
+  this->dispatcher->waitToFinish();
+end procedure
+
+function GoldbachWebApp::handleHttpRequest(httpRequest, httpResponse) do
+    if httpRequest.getMethod() == "GET" && httpRequest.getURI() == "/" do
+        return serveHomepage(httpRequest, httpResponse)
+    end if
+    return false
+end function
+
+function GoldbachWebApp::serveHomepage(httpRequest, httpResponse) do
+    httpResponse.setHeader("Server", "AttoServer v1.1")
+    httpResponse.setHeader("Content-type", "text/html; charset=ascii")
+
+    title := "Conjetura de Goldbach"
+    httpResponse.body() << "HTML code for the body"
+    
+    return httpResponse.send()
+end function

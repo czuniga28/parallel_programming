@@ -1,0 +1,18 @@
+/*^(\s*)(\S) -> Exprecion regular para procesar los espacios en 
+blanco al inicio de una linea*/ 
+// $1// $2 -> Reemplaza los espacios seleccionados 
+procedure main(argc, argv[]) /*corre el hilo principal (es una subrutina o 
+procedimiento)*/ 
+  //creater thread_count as result of converting argv[1] to integer
+  thread_count := integer(argv[1])
+  for thread_number := 0 to thread_count do
+    create_thread(greet, thread_number) /*Se crea un hilo para que ejecute la accion requerida 
+y no lo haga el hilo principal (contrata otro trabajador)*/ 
+  end
+  print "Hello from main thread"
+
+end procedure
+
+procedure greet(thread_number) // Hilo secundario
+  print "Hello from secondary thread", thread_number
+end procedure

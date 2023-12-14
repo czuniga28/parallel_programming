@@ -1,0 +1,46 @@
+procedure teamShotPutSimulation do
+  var sizeTeam = readArg();
+  var distances[sizeTeam]
+
+  var points_t1 = 0;
+  var points_t2 = 0;
+
+  for threadNumber = 0 until sizeTeam * 2 do
+    distances[threadNumber] = create_thread(XXXX, threadNumber);
+  end
+
+  for threadNumber = 0 until sizeTeam * 2 do
+    if (distances[threadNumber] > distances[++threadNumber]) do // incrementar primero el valor antes de hacer la comparacion
+      points_t1++
+    end else do
+      points_t2++
+    end
+
+  end
+
+  if (points_t1 > points_t2) do
+    print("result" points_t1 + ":" +  points_t2 + ", team 1 wins")
+  end else do
+    print("result" points_t2 + ":" +  points_t1 + ", team 2 wins")
+  end
+end
+
+procedure shotPut(threadNumber) do
+  var maxDistance = 0;
+  for shot = 0 until 3 do
+    var newDistance = random(0, 25);
+    if (maxDistance < newDistance) do
+      maxDistance = newDistance
+    end
+  end
+
+  // 2.1: best shot put 18.407m
+  var teamMemberNum = (threadNumber / 2) + 1
+  if threadNumber % 2 == 0 do
+    print("1." + teamMemberNum + "best shot man" + maxDistance + "m")
+  end else do
+    print("2." + teamMemberNum + "best shot man" + maxDistance + "m")
+  end
+  
+  return maxDistance
+end

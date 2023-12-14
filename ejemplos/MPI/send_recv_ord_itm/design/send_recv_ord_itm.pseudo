@@ -1,0 +1,20 @@
+// En este ejemplo consideramos resolver el problema de imprimir mensajes en orden desde distintos procesos
+// usamos una solucion "conditionally safe". Enviamos el mensaje al proceso 0 de nuestro team de porcesos
+// Este proceso se encaga de imprimir todos los mensajes que recibe en orden
+procedure main:
+  declare constant message_capacity = 512 // buffer para recibir el mensaje
+  declare message as an array of message_capacity of char :=
+    "Hello from main thread of process " + process_number \
+    + " of " + process_count + " on " + process_hostname  // mensaje para cada proceso
+  // los procesos no se pueden enviar mensajes a si mismos
+  if process_number != 0 then // si no somos el proceso 0
+  // enviamos el mensaje al 0
+    send(message, length(message), 0)
+  else // si somos el 0 
+    print(process_number, " said ", message) // imprimimos nuestro porpio mensaje
+    for source := 1 to process_count do // recibimos mensajes
+      receive(&message, message_capacity, source)
+      // recibimos el mensaje del source
+      print(source, " sent ", message) 
+    end
+  end if

@@ -1,0 +1,27 @@
+procedure main(argc, argv[])
+  /* crea thread_count como resultado de convertir los parametros recibidos
+  a la hora de ejecutar el programa a ints*/ 
+  // el hilo que ejecuta main se comparte
+
+  shared greets as an array of thread_count texts
+
+  shared thread_count := integer(argv[1])
+  /* crea un for de paralelismo de datos que crea hilos que realizan la misma
+  tarea*/
+  for thread_number := 0 to thread_count do
+    // mapeo 1 a 1
+    create_thread(greet, thread_number, thread_count)  // thread team
+  end for
+  print "Hello from main thread"
+  for thread_number := 0 to thread_count do
+    // mapeo 1 a 1
+    print greets[thread_number]
+  end for
+end procedure
+
+procedure greet(thread_number, thread_count)
+  // No hay cond carrera porque se divide la memoria compartida y se reparte
+  greets[thread_number] := "Hello from secondary thread", thread_number, " of ",
+    thread_count
+
+end procedure

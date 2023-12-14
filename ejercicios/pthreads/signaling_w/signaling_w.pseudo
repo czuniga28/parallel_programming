@@ -1,0 +1,26 @@
+procedure main() {
+  // Crea un array de semáforos, uno por cada hilo
+  shared semaphores[w]
+  
+  // Inicializa todos los semáforos en 0
+  for i := 0 to w - 1 {
+    semaphores[i] := create_semaphore(0)
+  }
+  
+  // Crea y comienza todos los hilos
+  for i := 0 to w - 1 {
+    create_thread(thread_a, i, semaphores)
+  }
+}
+
+procedure thread_a(thread_number, semaphores) {
+  // Espera a que se active el semáforo correspondiente a su número de hilo
+  wait(semaphores[thread_number])
+  
+  // Ejecuta la instrucción a
+  
+  // Señala el siguiente semáforo para permitir que el siguiente hilo continúe
+  if thread_number < w - 1 {
+    signal(semaphores[thread_number + 1])
+  }
+}

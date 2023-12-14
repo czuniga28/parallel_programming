@@ -1,0 +1,27 @@
+procedure main(argc, argv[])
+  /* crea thread_count como resultado de convertir los parametros recibidos
+  a la hora de ejecutar el programa a ints*/ 
+  // el hilo que ejecuta main se comparte
+
+  shared can_greet as an array of thread_count semaphores  // declara semaforo
+
+  shared thread_count := integer(argv[1])
+  /* crea un for de paralelismo de datos que crea hilos que realizan la misma
+  tarea*/
+  for thread_number := 0 to thread_count do
+    can_greet[thread_number] := create_semaphore(not thread_number)
+    create_thread(greet, thread_number, thread_count)  // thread team
+  end for
+  print "Hello from main thread"
+end procedure
+
+procedure greet(thread_number, thread_count)
+  wait(can_greet[thread_number])  // Decrementa el semaforo
+
+  print "Hello from secondary thread", thread_number, " of ", thread_count
+
+  // incrementa el semaforo para que el siguiente hilo pueda seguir la ejecucion
+  // se utiliza logica modular para dejar la misma situacion inicial
+  signal(can_greet[(thread_number + 1)] mod thread_count)
+
+end procedure

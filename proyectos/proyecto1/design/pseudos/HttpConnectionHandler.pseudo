@@ -1,0 +1,84 @@
+procedure HttpConnectionHandler::consume(data) do
+    while true do
+        httpRequest := HttpRequest(data)
+
+        if not httpRequest.parse() then
+            // Non-valid requests are normal after a previous valid request.
+            // Do not close the connection yet, because the valid request may take time to be processed.
+            // Just stop waiting for more requests.
+            break
+        end if
+
+        httpResponse := HttpResponse(data)
+        rq := reqRes_t(httpRequest, httpResponse)
+
+        // Give subclass a chance to respond to the HTTP request
+        handled := this->handleHttpRequest(rq.httpRequest, rq.httpResponse)
+
+        // If subclass did not handle the request or the client used HTTP/1.0
+        if httpRequest.getHttpVersion() == "HTTP/1.0" then
+            // The socket will not be used anymore, close the connection.
+            data.close()
+            break
+        end if
+
+        produce(rq)
+    end while
+end procedure
+
+// This method runs as long as there are connections to consume
+procedure HttpConnectionHandler::run() do
+    this->consumeForever()
+    return EXIT_SUCCESS
+end function
+
+// Methods that were moved from HttpServer:
+
+procedure HttpConnectionHandler::handleHttpRequest(httpRequest, httpResponse) do
+    // Print IP and port from the client
+    address := httpRequest.getNetworkAddress()
+    Log::append(Log::INFO, "connection", "Connection established with client " + address.getIP() + " port " + address.getPort())
+
+    // Print HTTP request
+    Log::append(Log::INFO, "request", httpRequest.getMethod() + ' ' + httpRequest.getURI() + ' ' + httpRequest.getHttpVersion())
+
+    return this->route(httpRequest, httpResponse)
+end procedure
+
+procedure HttpConnectionHandler::route(httpRequest, httpResponse) do
+    // Traverse the chain of applications
+    for index from 0 to this->applications->size() - 1 do
+        // If this application handles the request
+        app := (*this->applications)[index]
+        if app->handleHttpRequest(httpRequest, httpResponse) then
+            return true
+        end if
+    end for
+
+    // Unrecognized request
+    return this->serveNotFound(httpRequest, httpResponse)
+end procedure
+
+procedure HttpConnectionHandler::serveNotFound(httpRequest, httpResponse) do
+    // Ignore the 'httpRequest' parameter
+
+    // Set HTTP response metadata (headers)
+    httpResponse.setStatusCode(404)
+    httpResponse.setHeader("Server", "AttoServer v1.0")
+    httpResponse.setHeader("Content-type", "text/html; charset=ascii")
+
+    // Build the body of the response
+    title := "Not found"
+    httpResponse.body() << "<!DOCTYPE html>\n"
+        << "<html lang=\"en\">\n"
+        << "  <meta charset=\"ascii\"/>\n"
+        << "  <title>" << title << "</title>\n"
+        << "  <style>body {font-family: monospace} h1 {color: red}</style>\n"
+        << "  <h1>" << title << "</h1>\n"
+        << "  <p>The requested resource was not found on this server.</p>\n"
+        << "  <hr><p><a href=\"/\">Homepage</a></p>\n"
+        << "</html>\n"
+
+    // Send the response to the client (user agent)
+    return httpResponse.send()
+end procedure

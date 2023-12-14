@@ -1,0 +1,13 @@
+procedure main(argc, argv[])
+  // crear thread_count tomandolo de la linea de comandos
+  shared const thread_count = integer(argv[1]) // pasamos el numero de hilos como shared data
+  create_threads(thread_number, greet)
+  print "Hello from main thread of process ", process_number, " of " \
+    , process_count," on ", process_hostname  // procces count y hostname son signos de computacion distribuida
+end procedure
+
+procedure greet(thread_number)
+  print "\tHello from thread ", thread_number, " of ", thread_count, \
+    " of process ", process_number, " of ", process_count," on " \
+    , process_hostname
+end procedure

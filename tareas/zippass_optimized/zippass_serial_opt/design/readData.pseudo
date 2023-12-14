@@ -1,0 +1,40 @@
+function storeData() -> dynamicArray_t
+    create and initialize array
+    set cont to 0
+    while
+        read filePath
+        if read size ≠ 1
+            break
+        add filePath to array
+        set alfaLength, maxSizePassword
+        increment cont
+    end while
+
+    for i to array.length
+        print file path
+    end for
+    return array
+
+function openZip()
+    set error to 0
+    for i to array.length
+        set path
+        open archive with path
+        if archive is null
+            print error
+            exit
+        end if
+
+        get file info
+        create and read txt
+
+        open encrypted file
+        if file descriptor is null
+            print error
+            close archive
+            exit
+        end if
+
+        read content
+        close file descriptor
+    end loop

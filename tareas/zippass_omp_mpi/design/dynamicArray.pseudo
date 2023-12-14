@@ -1,0 +1,20 @@
+define function dynamicArrayAddCapacity()
+
+function dynamicArrayInit()
+    initialize array properties
+
+function dynamicArrayAppend()
+    if array is full
+        dynamicArrayAddCapacity()
+
+    create newStr and copy texto to it
+    add newStr to array.elements
+
+function dynamicArrayAddCapacity()
+    if array == 0
+        set array capacity = 1
+    else
+        double array's capacity
+
+procedure dynamicArrayFinalize()
+    free memory and reset array 

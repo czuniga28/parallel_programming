@@ -1,0 +1,70 @@
+procedure main(argc, argv) do
+  // Verificar que se proporcionó el nombre de archivo
+  if argc < 2 then do
+    print "Uso: " << argv[0] << " <nombre_del_archivo.txt>" 
+  end if
+
+  // Obtener cantidad de hilos
+  if argc >= 3 do 
+    cantidadHilos := argv[2]
+  end else do
+    cantidadHilos := std::thread::hardware_concurrency();
+  end
+
+
+  // Inicializar MPI
+  if MPI_Init(argc, argv) != MPI_SUCCESS then do
+    print "Error: No se pudo inicializar los procesos MPI"
+  end if
+
+  // Vector que almacena la información de las simulaciones
+  infoSimulaciones := new Vector<infoSimulacion>()
+
+  // Abrir el archivo y cargar la información de las simulaciones
+  lecturaArchivoTrabajo(argv[1], infoSimulaciones)
+
+  // Obtener información MPI
+  inicio := 0
+  fin := longitud(infoSimulaciones)
+  process_count := -1
+  MPI_Comm_size(MPI_COMM_WORLD, process_count)
+  process_number := -1
+  MPI_Comm_rank(MPI_COMM_WORLD, process_number)
+  inicio_index := calcular_inicio(process_number, fin, process_count, inicio)
+  fin_index := calcular_fin(process_number, fin, process_count, inicio)
+
+  // Realizar simulaciones usando OpenMP
+  #pragma omp parallel for schedule(dynamic) num_threads(cantidadHilos) \
+    default(none) shared(infoSimulaciones, inicio_index, fin_index)
+  for simulacion_index := inicio_index to fin_index - 1 do
+    // Preparar la simulación
+    prepararSimulacion(infoSimulaciones[simulacion_index])
+  end for
+
+  // Manejar resultados dependiendo del proceso MPI
+  error := EXIT_SUCCESS
+  if process_number = 0 then do
+    // Proceso rank 0 recibe estados y escribe el reporte
+    if recibirEstados(infoSimulaciones) == EXIT_FAILURE then
+      error := EXIT_FAILURE
+    end if
+
+    escrituraArchivoReporte(infoSimulaciones)
+  else do
+    // Otros procesos envían estados al 0
+    for simulacion_index := inicio_index to fin_index - 1 do
+      if MPI_Send(infoSimulaciones[simulacion_index].estado, 1,
+                   MPI_INT64_T, 0, 0, MPI_COMM_WORLD) != MPI_SUCCESS then do
+        print "Error: No se pudo enviar el recuento de estados"
+        error := EXIT_FAILURE
+      end if
+    end for
+  end if
+
+  // Sincronizar todos los procesos MPI
+  MPI_Barrier(MPI_COMM_WORLD)
+
+  MPI_Finalize()
+
+  Devolver error
+end procedure

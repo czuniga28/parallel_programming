@@ -1,0 +1,26 @@
+procedure main:
+  // How many threads have arrived to the barrier
+  shared count := 0
+  // Protects the increment of the count
+  shared can_access_count := create_semaphore(1)
+  // Locked (0) until all threads arrive, then its unlocked (1)
+  shared barrier := create_semaphore(0)
+  // Read thread count from std input
+  shared constant thread_count = read_integer()
+  // Create a thread team running secondary
+  create_thread(thread_count, secondary)
+end procedure
+
+procedure secondary:
+  Statement A
+  wait(can_access_count)  // se entra en reg critica para evitar cond carrera
+    ++count // se incrementa count
+    if count = thread_count then  // condicion para no quedarse pegado en el ult
+      for index := 0 to thread_count do
+        signal(barrier)  // Incrementar la barrera para que el ultimo salga
+      end for // 
+    end if
+  signal(can_access_count)  // se sale de la reg critica
+  wait(barrier)
+  Statement B
+end procedure

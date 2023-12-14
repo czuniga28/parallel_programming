@@ -1,0 +1,32 @@
+procedure main:
+  declare values as a dynamic array of float // declaramos array de floats
+  declare value_count := 0 // contador
+  // esto es una variable local para cada proceso 
+  // lectura se hace en el proceso principal
+  if process_number = 0 then
+    declare value := 0
+    // while podamos leer desde el input
+    while can_read(stdin) do
+      // leemos un valor y lo añadimos
+      append(values, value)
+    end while
+
+    value_count := count(values) // contamos el numero de valores
+    for target := 1 to process_count do
+      // enviamos el numero de valores al target
+      // para que los almacene el en array
+      send(&value_count, 1, target)
+      send(&values, count(values), target)
+    end
+  else // todos los otros hilos reciben valores y los imprimen
+  // recibimos el numero de valores
+    receive(&value_count, 1, 0)
+    resize(values, value_count)
+    // recibimos valores y los guardamos en el array
+    receive(&values, value_count, 0)
+  end if
+
+  for index := 0 to count(values) do
+    print(process_number, ": ", index, ": ", values[index])
+  end for
+end procedure

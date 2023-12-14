@@ -1,0 +1,53 @@
+procedure main:
+  shared can_access_medium := create_semaphore // acccesar al medio donde leen y escriben
+
+  while true:
+    case read_char() of:
+      'R': create_thread(reader)
+      'W': create_thread(writer)
+      EOF: return
+    end case
+  end while
+end procedure
+
+procedure reader:
+  read()procedure main:
+  shared can_access_medium := create_semaphore(1)
+  shared can_access_reading := create_semaphore(1)  // mutex para el contador
+  shared reading_count := 0  // cuanto estamos leyendo
+
+  while true:
+    case read_char() of:
+      'R': create_thread(reader)
+      'W': create_thread(writer)
+      EOF: return
+    end case
+  end while
+end procedure
+
+procedure reader:
+  wait(can_access_reading)  // evita condicion de carrera
+    reading_count := reading_count + 1  // lo hago el primero
+    if reading_count = 1 then  // si yo soy el primero
+      wait(can_access_medium)  // el medio esta libre o otro esta escribiendo
+    end if
+    signal(can_access_reading)  // libera
+    read()  // read fuera del area critica para que tenga paralelismo
+  wait(can_access_reading)
+    reading_count := reading_count - 1
+    if reading_count = 0 then
+      signal(can_access_medium)
+    end if
+  signal(can_access_reading)
+end procedure
+
+procedure writer:
+  wait(can_access_medium)
+  write()
+  signal(can_access_medium)  // libera al mutex cuando terima de escribir
+end procedure
+end procedure
+
+procedure writer:
+  write()  // solo permite escribir
+end procedure

@@ -1,0 +1,53 @@
+procedure main() do
+  create alpha[]
+  create alpha_len
+  create max_size_pass
+  create file_path[]
+
+  shared pass_found[]
+
+  create thread_count = system_num_threads()
+
+  create can_access_pass_found = mutex_init()
+
+  read_input(alpha[], alpha_len, max_size_pass, file_path)
+
+  hack_files(alpha[], alpha_len, max_size_pass, file_path, pass_found)
+end
+
+procedure hack_files(alpha[], alpha_len, max_size_pass, file_path, pass_found) do
+  for i = 0 until i = file_path.len - 1 do
+    for j = 1 until j = max_size_pass do
+      create combinations = pow(alpha_len^j)
+      for thread_num = 0 until thread_num = thread_count do
+        // numero de hilos, cantidad de trabajo y cantidad maxima de hilos
+        create start = static_mapping(thread_num, combinations, thread_count)
+        create finish = static_mapping(thread_num+1, combinations, thread_count)
+        create_thread(hack_files_aux(i, j, start, finish, pass_found, file_path))
+      end
+      for thread_num = 0 until thread_num = thread_count do
+        join()
+      end
+    end
+  end
+end
+
+procedure hack_files_aux(current_file, pass_size, start, finish, alpha
+    , alpha_len, pass_found, file_path) do
+  for i = start until i = finish do
+    lock(can_access_pass_found)
+    if (pass_found[current_file]) do
+      unlock(can_access_pass_found)
+      break
+    end
+    unlock(can_access_pass_found)
+    create pass = obtain_pass(pass_size, i, alpha, alpha_len)
+    create hacked = open_file(pass, file_path[current_file])
+    if (hacked) do
+      lock(can_access_pass_found)
+      pass_found[current_file] = true
+      unlock(can_access_pass_found)
+    end
+
+  end
+end
